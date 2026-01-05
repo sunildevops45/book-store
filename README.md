@@ -2,6 +2,8 @@
 
 <hr>
 
+
+
 ## About this project
 This is an Ecommerce project still `development in progress`, where users can adds books to the cart and buy those books.
 
