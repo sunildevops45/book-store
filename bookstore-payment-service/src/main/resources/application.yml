@@ -60,6 +60,8 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://ep-floral-leaf-ah3zqqpm-pooler.c-3.us-east-1.aws.neon.tech/Bookstore?user=neondb_owner&password=npg_5yv7FabLrlzs&sslmode=require&channelBinding=require
+    username: neondb_owner
+    password: npg_5yv7FabLrlzs
 ---
 
 spring:
