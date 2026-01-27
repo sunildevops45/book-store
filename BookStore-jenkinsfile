@@ -1,0 +1,77 @@
+pipeline {
+    agent any
+
+    tools {
+        jdk 'jdk8'
+        maven 'maven3'
+    }
+
+    parameters {
+        choice(
+            name: 'Services',
+            choices: ['bookstore-account-service','bookstore-api-gateway-service','bookstore-billing-service','bookstore-catalog-service','bookstore-eureka-discovery-service','bookstore-order-service','bookstore-payment-service'],
+            description: 'Select the service to build'
+        )
+    }
+
+    environment {
+        DOCKER_REGISTRY = "sunildevops45"
+        IMAGE_TAG = "${BUILD_NUMBER}"
+		DOCKER_CREDS = "dockerhub-creds"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: 'master', url: 'https://github.com/sunildevops45/book-store.git'
+            }
+        }
+
+        stage('Build Service') {
+            steps {
+                sh """
+                    cd ${params.Services}
+                    mvn clean package -DskipTests
+                """
+            }
+        }
+
+        stage('Docker Build & Push') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: DOCKER_CREDS,usernameVariable: 'DOCKER_USER',passwordVariable: 'DOCKER_PASS')]) 
+				{
+                    sh """
+                        cd ${params.Services}
+                        docker build -t ${DOCKER_REGISTRY}/${params.Services}:${IMAGE_TAG} .
+                        echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
+                        docker push ${DOCKER_REGISTRY}/${params.Services}:${IMAGE_TAG}
+                    """
+                }
+            }
+        }
+		
+	    stage('Kubernetes Deploy') {
+            steps {
+                sh """
+
+                    sed -i 's|IMAGE_TAG|${IMAGE_TAG}|g' k8s/${params.Services}-deployment.yaml
+
+                    kubectl apply -f k8s/${params.Services}-deployment.yaml
+
+                    kubectl rollout status deployment/${params.Services}
+                """
+            }
+        }	
+    }
+
+    post {
+        success {
+            echo "✅ Build successful for ${params.Services}"
+            echo "🐳 Image: ${DOCKER_REGISTRY}/${params.Services}:${IMAGE_TAG}"
+        }
+        failure {
+            echo "❌ Pipeline failed for ${params.Services}"
+        }
+    }
+}
