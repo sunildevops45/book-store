@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: bookstore-billing-service
-        image: rajureddy98/bookstore-billing-service:2.0
+        image: sunildevops1/bookstore-billing-service:10
         ports:
           - containerPort: 5001
         imagePullPolicy: Always
