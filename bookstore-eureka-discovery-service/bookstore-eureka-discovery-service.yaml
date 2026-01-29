@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: bookstore-eureka-discovery-service
-        image: rajureddy98/bookstore-eureka-discovery-service:2.0
+        image: sunildevops1/bookstore-eureka-discovery-service:15
         ports:
           - containerPort: 8761
 ---
