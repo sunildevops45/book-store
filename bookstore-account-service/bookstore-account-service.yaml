@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: bookstore-account-service
-        image: sunildevops1/bookstore-account-service:8
+        image: sunildevops1/bookstore-account-service:9
         ports:
           - containerPort: 4001
         imagePullPolicy: Always
