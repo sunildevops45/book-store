@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: bookstore-order-service
-        image: sunildevops1/bookstore-order-service:13
+        image: sunildevops1/bookstore-order-service:14
         ports:
           - containerPort: 7001
         imagePullPolicy: Always
