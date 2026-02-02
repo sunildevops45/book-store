@@ -1,4 +1,4 @@
-FROM node:16 
+FROM node:16-bullseye
 WORKDIR /app 
 COPY package.json /app 
 COPY yarn.lock /app
