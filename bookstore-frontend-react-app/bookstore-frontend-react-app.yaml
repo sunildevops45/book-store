@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: bookstore-frontend-react-app
-        image: rajureddy98/bookstore-frontend-react-app:9.0
+        image: sunildevops1/bookstore-frontend-react-app:20
         ports:
           - containerPort: 3000
         imagePullPolicy: Always
