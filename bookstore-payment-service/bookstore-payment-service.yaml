@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: bookstore-payment-service
-        image: sunildevops1/bookstore-payment-service:14
+        image: sunildevops1/bookstore-payment-service:15
         ports:
           - containerPort: 8001
         imagePullPolicy: Always
