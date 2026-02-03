@@ -28,7 +28,7 @@ metadata:
   labels:
     app: api-gateway-service
 spec:
-  type: NordPort
+  type: NodePort
   selector:
     app: api-gateway
   ports:
