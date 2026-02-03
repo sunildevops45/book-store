@@ -28,7 +28,7 @@ metadata:
   labels:
     app: api-gateway-service
 spec:
-  type: ClusterIP
+  type: NordPort
   selector:
     app: api-gateway
   ports:
