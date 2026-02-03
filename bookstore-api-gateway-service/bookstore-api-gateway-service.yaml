@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: bookstore-api-gateway-service
-        image: sunildevops1/bookstore-api-gateway-service:10
+        image: sunildevops1/bookstore-api-gateway-service:29
         imagePullPolicy: Always
         ports:
           - containerPort: 8765
