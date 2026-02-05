@@ -1,0 +1,76 @@
+	pipeline {
+		agent any
+
+		tools {
+			jdk 'jdk8'
+			maven 'mvn'
+			nodejs 'node16'
+		}
+
+		parameters {
+			choice(
+				name: 'Services',
+				choices: ['bookstore-account-service','bookstore-frontend-react-app','bookstore-api-gateway-service','bookstore-billing-service','bookstore-catalog-service','bookstore-eureka-discovery-service','bookstore-order-service','bookstore-payment-service'],
+				description: 'Select the service to build'
+			)
+			booleanParam(
+			name: 'Docker_build_and_push_required',
+			defaultValue: true,
+			description: 'Enable Docker build & push'
+		    )
+
+		}
+			environment {
+			DOCKER_REGISTRY = "sunildevops1"
+			IMAGE_TAG = "${BUILD_NUMBER}"
+			SERVICE = "${params.Services}"
+		}
+
+		stages {
+
+			stage('Checkout') {
+				steps {
+					git branch: 'master', url: 'https://github.com/sunildevops45/book-store.git'
+				}
+			}
+
+			stage('Build Service') {
+					steps {
+						script {
+							if (params.Services == 'bookstore-frontend-react-app') {
+								sh """
+									cd ${SERVICE}
+									npm install
+									npm run build
+								"""
+							} else {
+								sh """
+									cd ${SERVICE}
+									mvn clean package -DskipTests
+								"""
+							}
+						}
+					}
+				}
+
+			stage('Docker Build & Push') {
+				steps {
+					script {
+						if (params.Docker_build_and_push_required.toBoolean()) {
+						withCredentials([
+							usernamePassword(credentialsId: 'dockerhub-creds',usernameVariable: 'DOCKER_USER',passwordVariable: 'DOCKER_PASS')
+						]) {
+							sh """
+								cd ${SERVICE}
+								echo "\$DOCKER_PASS" | docker login -u "\$DOCKER_USER" --password-stdin
+								docker build -t ${DOCKER_REGISTRY}/${SERVICE}:${IMAGE_TAG} .
+								docker push ${DOCKER_REGISTRY}/${SERVICE}:${IMAGE_TAG}
+								docker logout
+							"""
+						}
+						}
+					}
+				}
+			}
+		}
+	}
