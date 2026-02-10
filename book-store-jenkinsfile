@@ -2,9 +2,9 @@
 		agent any
 
 		tools {
-			jdk 'jdk8'
+			jdk 'jdk 8'
 			maven 'mvn'
-			nodejs 'node16'
+			nodejs 'node 16'
 		}
 
 		parameters {
