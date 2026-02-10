@@ -4,7 +4,7 @@
 		tools {
 			jdk 'jdk 8'
 			maven 'mvn'
-			nodejs 'node 16'
+			nodejs 'nodejs 16'
 		}
 
 		parameters {
@@ -12,6 +12,11 @@
 				name: 'Services',
 				choices: ['bookstore-account-service','bookstore-frontend-react-app','bookstore-api-gateway-service','bookstore-billing-service','bookstore-catalog-service','bookstore-eureka-discovery-service','bookstore-order-service','bookstore-payment-service'],
 				description: 'Select the service to build'
+			)
+			string(
+				name: 'IMAGE_TAG',
+				defaultValue: '',
+				description: 'Docker image tag'
 			)
 			booleanParam(
 			name: 'Docker_build_and_push_required',
@@ -22,7 +27,7 @@
 		}
 			environment {
 			DOCKER_REGISTRY = "sunildevops1"
-			IMAGE_TAG = "${BUILD_NUMBER}"
+			IMAGE_TAG = "${params.IMAGE_TAG}"
 			SERVICE = "${params.Services}"
 		}
 
