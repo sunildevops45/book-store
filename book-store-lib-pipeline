@@ -1,0 +1,70 @@
+	@Library('jenkins-shared-lib') _
+	
+	pipeline {
+		agent any
+
+		tools {
+			jdk 'jdk 8'
+			maven 'mvn'
+			nodejs 'nodejs 16'
+		}
+
+		parameters {
+			choice(
+				name: 'Services',
+				choices: ['bookstore-account-service','bookstore-frontend-react-app','bookstore-api-gateway-service','bookstore-billing-service','bookstore-catalog-service','bookstore-eureka-discovery-service','bookstore-order-service','bookstore-payment-service'],
+				description: 'Select the service to build'
+			)
+			string(
+				name: 'IMAGE_TAG',
+				defaultValue: '',
+				description: 'Docker image tag'
+			)
+			booleanParam(
+			name: 'Docker_build_and_push_required',
+			defaultValue: true,
+			description: 'Enable Docker build & push'
+		    )
+
+		}
+			environment {
+			REGISTRY = "sunildevops1"
+			SERVICE = "${params.Services}"
+			TAG = "${params.IMAGE_TAG}"
+		}
+		
+		stages {
+
+			stage('Checkout') {
+				steps {
+					checkoutStage('master','https://github.com/sunildevops45/book-store.git')
+				}
+			}
+
+			stage('Build') {
+				steps {
+					dir(env.SERVICE) {
+						script {
+							if (env.SERVICE == 'bookstore-frontend-react-app') {
+								buildNode()
+							} else {
+								buildMaven()
+							}
+						}
+					}
+				}
+			}
+
+			stage('Docker Build & Push') {
+				when {
+					expression { params.Docker_build_and_push_required }
+				}
+				steps {
+					dir(env.SERVICE) {
+						dockerStage(env.REGISTRY,env.SERVICE,env.TAG)
+					}
+				}
+			}
+		}
+
+	}
