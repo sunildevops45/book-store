@@ -1,10 +1,18 @@
-name: Java CI
+name: Java CI - Select Service
 
 on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+  workflow_dispatch:
+    inputs:
+      service:
+        description: "Select service to build"
+        required: true
+        type: choice
+        options:
+          - bookstore-account-service
+          - bookstore-order-service
+          - bookstore-catalog-service
+          - bookstore-billing-service
+          - bookstore-api-gateway-service
 
 jobs:
   build:
@@ -24,5 +32,6 @@ jobs:
       - name: Verify Java Version
         run: java -version
 
-      - name: Build with Maven
+      - name: Build Selected Service
+        working-directory: ${{ github.event.inputs.service }}
         run: mvn clean install
