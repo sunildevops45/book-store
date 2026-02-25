@@ -1,4 +1,4 @@
-name: Java CI - Select Service
+name: Build Selected Service
 
 on:
   workflow_dispatch:
@@ -24,17 +24,31 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
+        
+      # BACKEND
       - name: Set up JDK 8
+        if: ${{ github.event.inputs.service != 'bookstore-frontend-react-app' }}
         uses: actions/setup-java@v4
         with:
           java-version: '8'
           distribution: 'temurin'
           cache: maven
 
-      - name: Verify Java Version
-        run: java -version
-
-      - name: Build Selected Service
+      - name: Build Java Service
+        if: ${{ github.event.inputs.service != 'bookstore-frontend-react-app' }}
         working-directory: ${{ github.event.inputs.service }}
-        run: mvn clean install
+        run: mvn clean install -DskipTests
+
+      # FRONTEND
+      - name: Set up Node.js
+        if: ${{ github.event.inputs.service == 'bookstore-frontend-react-app' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Build Frontend React App
+        if: ${{ github.event.inputs.service == 'bookstore-frontend-react-app' }}
+        working-directory: ${{ github.event.inputs.service }}
+        run: |
+          npm install
+          npm run build
