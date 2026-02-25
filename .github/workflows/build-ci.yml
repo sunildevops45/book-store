@@ -13,6 +13,9 @@ on:
           - bookstore-catalog-service
           - bookstore-billing-service
           - bookstore-api-gateway-service
+          - bookstore-eureka-discovery-service
+          - bookstore-frontend-react-app
+          - bookstore-payment-service
 
 jobs:
   build:
