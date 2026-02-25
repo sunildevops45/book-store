@@ -25,11 +25,11 @@ jobs:
       - name: Set up JDK 8
         uses: actions/setup-java@v4
         with:
+          distribution: temurin
           java-version: '8'
-          distribution: 'temurin'
-          cache: maven
+          cache: maven   # Uses modern cache internally
 
-      - name: Verify Java Version
+      - name: Verify Java
         run: java -version
 
       - name: Build Selected Service
