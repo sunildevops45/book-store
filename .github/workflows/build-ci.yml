@@ -17,6 +17,11 @@ on:
           - bookstore-frontend-react-app
           - bookstore-payment-service
 
+      image_tag:
+        description: "Docker image tag (example: v1.0.0)"
+        required: true
+        type: string
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -64,9 +69,9 @@ jobs:
       - name: Build Docker Image
         working-directory: ${{ github.event.inputs.service }}
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ github.event.inputs.service }}:latest .
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ github.event.inputs.service }}:${{ github.event.inputs.image_tag }} .
 
       # Push Docker Image
       - name: Push Docker Image
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ github.event.inputs.service }}:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/${{ github.event.inputs.service }}:${{ github.event.inputs.image_tag }}
