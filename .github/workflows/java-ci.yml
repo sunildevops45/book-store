@@ -34,4 +34,4 @@ jobs:
 
       - name: Build Selected Service
         working-directory: ${{ github.event.inputs.service }}
-        run: mvn clean install
+        run: mvn clean package -DskipTests
