@@ -18,7 +18,7 @@ on:
           - bookstore-payment-service
 
       image_tag:
-        description: "Docker image tag (example: v1.0.0)"
+        description: "Docker image tag"
         required: true
         type: string
 
