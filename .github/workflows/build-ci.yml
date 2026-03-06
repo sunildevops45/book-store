@@ -1,4 +1,4 @@
-name: Build Selected Service
+name: Book-store ci-service
 
 on:
   workflow_dispatch:
