@@ -17,6 +17,7 @@ on:
           - bookstore-frontend-react-app
           - bookstore-payment-service
           - bookstore-commons
+          - bookstore-feign
 
       image_tag:
         description: "Docker image tag"
