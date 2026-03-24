@@ -16,6 +16,7 @@ on:
           - bookstore-eureka-discovery-service
           - bookstore-frontend-react-app
           - bookstore-payment-service
+          - bookstore-commons
 
       image_tag:
         description: "Docker image tag"
