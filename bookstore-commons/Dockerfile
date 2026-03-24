@@ -4,6 +4,6 @@ VOLUME /tmp
 
 ARG JAR_FILE
 
-COPY target/*.jar billing-server.jar
+COPY target/*.jar common-server.jar
 
 ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-Dspring.profiles.active=local","-jar","/billing-server.jar"]
