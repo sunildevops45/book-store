@@ -1,0 +1,58 @@
+name: bookstore-cd-aks
+
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: "Select service to deploy"
+        required: true
+        type: choice
+        options:
+          - bookstore-account-service
+          - bookstore-order-service
+          - bookstore-catalog-service
+          - bookstore-billing-service
+          - bookstore-api-gateway-service
+          - bookstore-eureka-discovery-service
+          - bookstore-frontend-react-app
+          - bookstore-payment-service
+
+      image_tag:
+        description: "Docker image tag"
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Install Azure CLI
+        uses: azure/setup-azure@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get AKS Credentials
+        run: |
+          az aks get-credentials \
+          --resource-group bookstore \
+          --name bookstore \
+          --overwrite-existing
+
+      - name: Deploy to AKS
+        run: |
+          kubectl set image deployment/${{ github.event.inputs.service }} \
+          ${{ github.event.inputs.service }}=${{ secrets.DOCKER_USERNAME }}/${{ github.event.inputs.service }}:${{ github.event.inputs.image_tag }}
+
+      - name: Verify Deployment
+        run: |
+          kubectl rollout status deployment/${{ github.event.inputs.service }}
