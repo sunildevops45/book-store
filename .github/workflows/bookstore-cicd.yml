@@ -1,0 +1,103 @@
+name: Book-store CI-CD
+
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: "Select service to build"
+        required: true
+        type: choice
+        options:
+          - bookstore-account-service
+          - bookstore-order-service
+          - bookstore-catalog-service
+          - bookstore-billing-service
+          - bookstore-api-gateway-service
+          - bookstore-eureka-discovery-service
+          - bookstore-payment-service
+          - bookstore-frontend-react-app
+
+      image_tag:
+        description: "Docker image tag"
+        required: true
+        type: string
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 8
+        if: ${{ github.event.inputs.service != 'bookstore-frontend-react-app' }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build Java Service
+        if: ${{ github.event.inputs.service != 'bookstore-frontend-react-app' }}
+        working-directory: ${{ github.event.inputs.service }}
+        run: mvn clean install -DskipTests
+
+      - name: Set up Node.js
+        if: ${{ github.event.inputs.service == 'bookstore-frontend-react-app' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+
+      - name: Build Frontend React App
+        if: ${{ github.event.inputs.service == 'bookstore-frontend-react-app' }}
+        working-directory: ${{ github.event.inputs.service }}
+        run: |
+          npm install
+          npm run build
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker Image
+        working-directory: ${{ github.event.inputs.service }}
+        run: |
+          docker build \
+          -t ${{ secrets.DOCKER_USERNAME }}/${{ github.event.inputs.service }}:${{ github.event.inputs.image_tag }} .
+
+      - name: Push Docker Image
+        run: |
+          docker push \
+          ${{ secrets.DOCKER_USERNAME }}/${{ github.event.inputs.service }}:${{ github.event.inputs.image_tag }}
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set AKS Context
+        uses: azure/aks-set-context@v4
+        with:
+          resource-group: aks-rg
+          cluster-name: bookstore-cluster
+
+      - name: Deploy to AKS
+        run: |
+          kubectl apply -f \
+          ${{ github.event.inputs.service }}/${{ github.event.inputs.service }}.yaml
+
+      - name: Update Deployment Image
+        run: |
+          kubectl set image deployment/${{ github.event.inputs.service }} \
+          ${{ github.event.inputs.service }}=${{ secrets.DOCKER_USERNAME }}/${{ github.event.inputs.service }}:${{ github.event.inputs.image_tag }}
+
+      - name: Verify Rollout
+        run: |
+          kubectl rollout status deployment/${{ github.event.inputs.service }}
+
+      - name: Check Pods
+        run: |
+          kubectl get pods
