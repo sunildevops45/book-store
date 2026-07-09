@@ -27,7 +27,7 @@ metadata:
   labels:
     app: eureka-service
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: eureka
   ports:
