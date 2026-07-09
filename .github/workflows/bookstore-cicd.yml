@@ -1,11 +1,10 @@
-```yaml
 name: Book-store CI-CD
 
 on:
   workflow_dispatch:
     inputs:
       service:
-        description: "Select service to build"
+        description: Select service to build and deploy
         required: true
         type: choice
         options:
@@ -19,7 +18,7 @@ on:
           - bookstore-frontend-react-app
 
       image_tag:
-        description: "Docker image tag"
+        description: Docker image tag
         required: true
         default: latest
         type: string
@@ -27,6 +26,9 @@ on:
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout Code
@@ -36,36 +38,38 @@ jobs:
         if: ${{ github.event.inputs.service != 'bookstore-frontend-react-app' }}
         uses: actions/setup-java@v4
         with:
+          distribution: temurin
           java-version: '8'
-          distribution: 'temurin'
           cache: maven
 
       - name: Build bookstore-commons
         if: ${{ github.event.inputs.service != 'bookstore-frontend-react-app' }}
         working-directory: bookstore-commons
-        run: mvn clean install -DskipTests
+        run: mvn -B clean install -DskipTests
 
       - name: Build bookstore-feign
         if: ${{ github.event.inputs.service != 'bookstore-frontend-react-app' }}
         working-directory: bookstore-feign
-        run: mvn clean install -DskipTests
+        run: mvn -B clean install -DskipTests
 
       - name: Build Java Service
         if: ${{ github.event.inputs.service != 'bookstore-frontend-react-app' }}
         working-directory: ${{ github.event.inputs.service }}
-        run: mvn clean install -DskipTests
+        run: mvn -B clean install -DskipTests
 
       - name: Set up Node.js
         if: ${{ github.event.inputs.service == 'bookstore-frontend-react-app' }}
         uses: actions/setup-node@v4
         with:
           node-version: '16'
+          cache: npm
+          cache-dependency-path: bookstore-frontend-react-app/package-lock.json
 
-      - name: Build Frontend React App
+      - name: Build Frontend
         if: ${{ github.event.inputs.service == 'bookstore-frontend-react-app' }}
         working-directory: bookstore-frontend-react-app
         run: |
-          npm install
+          npm ci
           npm run build
 
       - name: Login to DockerHub
@@ -82,8 +86,7 @@ jobs:
 
       - name: Push Docker Image
         run: |
-          docker push \
-            ${{ secrets.DOCKER_USERNAME }}/${{ github.event.inputs.service }}:${{ github.event.inputs.image_tag }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/${{ github.event.inputs.service }}:${{ github.event.inputs.image_tag }}
 
       - name: Azure Login
         uses: azure/login@v2
@@ -96,7 +99,7 @@ jobs:
           resource-group: aks-rg
           cluster-name: bookstore-cluster
 
-      - name: Deploy to AKS
+      - name: Deploy Kubernetes Resources
         run: |
           kubectl apply -f ${{ github.event.inputs.service }}/${{ github.event.inputs.service }}.yaml
 
@@ -109,10 +112,9 @@ jobs:
         run: |
           kubectl rollout status deployment/${{ github.event.inputs.service }}
 
-      - name: Check Kubernetes Resources
+      - name: Verify Cluster
         run: |
           kubectl get nodes
           kubectl get deployments
           kubectl get pods
           kubectl get svc
-```
