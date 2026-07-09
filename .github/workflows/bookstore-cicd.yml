@@ -69,7 +69,7 @@ jobs:
         if: ${{ github.event.inputs.service == 'bookstore-frontend-react-app' }}
         working-directory: bookstore-frontend-react-app
         run: |
-          npm ci
+          npm install
           npm run build
 
       - name: Login to DockerHub
