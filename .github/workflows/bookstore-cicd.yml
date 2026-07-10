@@ -31,7 +31,6 @@ jobs:
       contents: read
 
     steps:
-
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
@@ -81,12 +80,12 @@ jobs:
         working-directory: ${{ github.event.inputs.service }}
         run: |
           docker build \
-          -t ${{ secrets.DOCKER_USERNAME }}/${{ github.event.inputs.service }}:${{ github.event.inputs.image_tag }} .
+            -t ${{ secrets.DOCKER_USERNAME }}/${{ github.event.inputs.service }}:${{ github.event.inputs.image_tag }} .
 
       - name: Push Docker Image
         run: |
           docker push \
-          ${{ secrets.DOCKER_USERNAME }}/${{ github.event.inputs.service }}:${{ github.event.inputs.image_tag }}
+            ${{ secrets.DOCKER_USERNAME }}/${{ github.event.inputs.service }}:${{ github.event.inputs.image_tag }}
 
       - name: Azure Login
         uses: azure/login@v2
@@ -103,7 +102,8 @@ jobs:
         run: |
           kubectl apply -f ${{ github.event.inputs.service }}/${{ github.event.inputs.service }}.yaml
 
-      - name: Deploy Ingress
+      - name: Deploy NGINX Ingress
+        if: ${{ github.event.inputs.service == 'bookstore-api-gateway-service' }}
         run: |
           kubectl apply -f k8s/nginx.yaml
 
@@ -114,12 +114,12 @@ jobs:
 
       - name: Verify Rollout
         run: |
-          kubectl rollout status deployment/${{ github.event.inputs.service }}
+          kubectl rollout status deployment/${{ github.event.inputs.service }} --timeout=300s
 
       - name: Verify Kubernetes Resources
         run: |
           kubectl get nodes
           kubectl get deployments
-          kubectl get pods
+          kubectl get pods -o wide
           kubectl get svc
           kubectl get ingress
